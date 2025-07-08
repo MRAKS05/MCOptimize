@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minecraft Optimization Guide for Low-End PCs</title>
 
+    <!-- Enable Tailwind dark mode via class strategy -->
     <script>
       tailwind.config = { darkMode: 'class' }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -18,8 +20,8 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         /* Light mode defaults */
-        body { background-color: #f5f5f4; color: #1f2937; }
-        .nav-link { transition: color 0.3s, border-bottom-color 0.3s; border-bottom: 2px solid transparent; color: #1f2937; }
+        body { background-color: #f5f5f4; }
+        .nav-link { transition: color 0.3s, border-bottom-color 0.3s; border-bottom: 2px solid transparent; }
         .nav-link:hover, .nav-link.active { color: #16a34a; border-bottom-color: #16a34a; }
         .chart-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto; height: 350px; max-height: 400px; }
         @media (min-width: 768px) { .chart-container { height: 400px; } }
@@ -28,7 +30,32 @@
         .section-fade-in { opacity: 0; animation: fadeIn 0.8s ease-out forwards; }
         @keyframes fadeIn { to { opacity: 1; } }
 
-        /* Improve light-mode block contrast */
+        /* --- NEW: Force all text to be pure black in light mode --- */
+        :root:not(.dark) body,
+        :root:not(.dark) p,
+        :root:not(.dark) h1,
+        :root:not(.dark) h2,
+        :root:not(.dark) h3,
+        :root:not(.dark) h4,
+        :root:not(.dark) li,
+        :root:not(.dark) .nav-link,
+        :root:not(.dark) strong,
+        :root:not(.dark) .text-stone-800,
+        :root:not(.dark) .text-stone-700,
+        :root:not(.dark) .text-stone-600,
+        :root:not(.dark) .text-stone-900,
+        :root:not(.dark) .text-stone-100 {
+            color: #111827 !important; /* A very dark, near-black color */
+        }
+        /* Keep special colors like green links working */
+        :root:not(.dark) .text-green-700 { color: #15803d !important; }
+        :root:not(.dark) .text-green-600 { color: #16a34a !important; }
+        :root:not(.dark) .text-green-500 { color: #22c55e !important; }
+        :root:not(.dark) .text-blue-800 { color: #1e40af !important; }
+        :root:not(.dark) .text-amber-800 { color: #92400e !important; }
+
+
+        /* Light mode block styles */
         :root:not(.dark) .bg-white { background-color: #ffffff; }
         :root:not(.dark) .bg-stone-50 { background-color: #e4e4e7; }
         :root:not(.dark) .border-stone-200 { border-color: #cbd5e1; }
@@ -40,32 +67,49 @@
         .dark .bg-white { background-color: #374151 !important; }
         .dark .bg-white\/80 { background-color: rgba(55,65,81,0.8) !important; }
         .dark .bg-stone-50 { background-color: #4b5563 !important; }
-        /* Adjusted dark mode text for better consistency */
-        .dark .text-stone-800 { color: #e5e7eb !important; }
+        .dark .text-stone-800, .dark .text-stone-900, .dark .text-stone-100 { color: #e5e7eb !important; }
         .dark .text-stone-700 { color: #d1d5db !important; }
         .dark .text-stone-600 { color: #9ca3af !important; }
         .dark .text-stone-500 { color: #6b7280 !important; }
+        .dark .nav-link { color: #e5e7eb !important; }
+        
+        /* AI Tweaks Section Styling */
+        #ai-tweaks-result ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin-top: 1rem;
+        }
+        #ai-tweaks-result li {
+            margin-bottom: 0.75rem;
+        }
     </style>
 </head>
 <body class="antialiased">
 
+    <!-- Header & Navigation -->
     <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
-        <nav class="container mx-auto px-4 sm:px-6 py-4 flex items-center justify-between relative">
-            <a href="https://mcoptimize.pages.dev" class="text-2xl font-bold text-green-700">
+        <nav class="container mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <!-- Logo as hyperlink -->
+            <a href="#" class="text-2xl font-bold text-green-700">
                 <span class="text-stone-800 dark:text-stone-200">MC</span>Optimize
             </a>
-            <div class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 space-x-8">
+            <!-- Centered nav links for Desktop -->
+            <div class="hidden md:flex flex-1 justify-center space-x-8">
                 <a href="#recommender" class="nav-link font-semibold">Recommender</a>
                 <a href="#compare"     class="nav-link font-semibold">Compare</a>
                 <a href="#mods"        class="nav-link font-semibold">Key Mods</a>
                 <a href="#install"     class="nav-link font-semibold">Install</a>
+                <a href="#ai-tweaks"   class="nav-link font-semibold">AI Tweaks</a>
             </div>
-            <div class="flex items-center space-x-2 sm:space-x-4">
-                <a href="#recommender" class="md:hidden bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">Get Started</a>
-                <button id="theme-toggle" class="p-2 rounded-full focus:outline-none text-stone-800 dark:text-stone-200" aria-label="Toggle Dark Mode">
+            <!-- Right-aligned controls -->
+            <div class="flex items-center">
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="ml-4 p-2 rounded-full focus:outline-none" aria-label="Toggle Dark Mode">
+                    <!-- Sun icon -->
                     <svg id="theme-toggle-light-icon" class="hidden w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 2a.75.75 0 0 1 .75.75V4a.75.75 0 0 1-1.5 0V2.75A.75.75 0 0 1 10 2zm5.657 2.343a.75.75 0 0 1 1.06 1.06l-1.061 1.061a.75.75 0 1 1-1.06-1.06l1.06-1.061zM18 9.25a.75.75 0 0 1 .75.75H20a.75.75 0 0 1 0 1.5h-1.25A.75.75 0 0 1 18 9.25zm-2.343 5.657a.75.75 0 0 1 1.06 1.06l-1.061 1.061a.75.75 0 0 1-1.06-1.06l1.06-1.061zM10 16a.75.75 0 0 1 .75.75V18a.75.75 0 0 1-1.5 0v-1.25A.75.75 0 0 1 10 16zm-5.657-2.343a.75.75 0 0 1 1.06-1.06l1.061 1.06a.75.75 0 1 1-1.06 1.061l-1.061-1.061zM2 10a.75.75 0 0 1 .75-.75H4a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 10zm2.343-5.657a.75.75 0 1 1 1.06-1.06l1.061 1.06a.75.75 0 1 1-1.06 1.061L4.343 4.343z"/>
                     </svg>
+                    <!-- Moon icon -->
                     <svg id="theme-toggle-dark-icon" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M17.293 13.293a8 8 0 1 1-10.586-10.586 7 7 0 1 0 10.586 10.586z"/>
                     </svg>
@@ -74,68 +118,74 @@
         </nav>
     </header>
 
-    <main class="container mx-auto px-4 sm:px-6 py-8 md:py-12">
+    <main class="container mx-auto px-4 sm:px-6 py-8 md:py-12 w-full">
 
+        <!-- Hero Section -->
         <section class="text-center mb-16 md:mb-24">
-            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 text-stone-900 dark:text-stone-100">Run Minecraft Smoothly on Any PC</h1>
-            <p class="max-w-3xl mx-auto text-lg md:text-xl text-stone-800 dark:text-stone-400">
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">Run Minecraft Smoothly on Any PC</h1>
+            <p class="max-w-3xl mx-auto text-lg md:text-xl">
                 Stop battling low FPS and stuttering. Use this guide to find the perfect optimization modpack and transform your Minecraft experience, even on a low-end computer.
             </p>
         </section>
 
+        <!-- Recommender Section -->
         <section id="recommender" class="mb-16 md:mb-24 p-6 sm:p-8 bg-white rounded-2xl shadow-lg section-fade-in">
             <div class="text-center mb-8">
-                <h2 class="text-3xl md:text-4xl font-bold text-stone-900 dark:text-stone-100">Find Your Perfect Modpack</h2>
-                <p class="text-stone-800 dark:text-stone-400 mt-2">Answer two simple questions to get our top recommendation.</p>
+                <h2 class="text-3xl md:text-4xl font-bold">Find Your Perfect Modpack</h2>
+                <p class="mt-2">Answer two simple questions to get our top recommendation.</p>
             </div>
             <div class="grid md:grid-cols-2 gap-8 items-center">
+                <!-- Questions -->
                 <div>
                     <div class="mb-6">
-                        <h3 class="text-xl font-semibold mb-3 text-stone-900 dark:text-stone-100">1. What is your main priority?</h3>
+                        <h3 class="text-xl font-semibold mb-3">1. What is your main priority?</h3>
                         <div class="flex flex-col sm:flex-row gap-4">
-                            <button id="priority-balanced" onclick="updateRecommendation('priority', 'balanced')" class="flex-1 text-left p-4 border-2 border-stone-200 dark:border-stone-600 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
-                                <strong class="text-lg dark:text-stone-100">🎨 Balanced Experience</strong>
-                                <p class="text-sm text-stone-700 dark:text-stone-400">I want great performance but also good graphics and features like shaders.</p>
+                            <button id="priority-balanced" onclick="updateRecommendation('priority', 'balanced')" class="flex-1 text-left p-4 border-2 border-stone-200 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
+                                <strong class="text-lg">🎨 Balanced Experience</strong>
+                                <p class="text-sm">I want great performance but also good graphics and features like shaders.</p>
                             </button>
-                            <button id="priority-fps" onclick="updateRecommendation('priority', 'fps')" class="flex-1 text-left p-4 border-2 border-stone-200 dark:border-stone-600 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
-                                <strong class="text-lg dark:text-stone-100">🚀 Maximum FPS</strong>
-                                <p class="text-sm text-stone-700 dark:text-stone-400">I only care about the highest possible framerate, even if it looks basic.</p>
+                            <button id="priority-fps" onclick="updateRecommendation('priority', 'fps')" class="flex-1 text-left p-4 border-2 border-stone-200 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
+                                <strong class="text-lg">🚀 Maximum FPS</strong>
+                                <p class="text-sm">I only care about the highest possible framerate, even if it looks basic.</p>
                             </button>
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold mb-3 text-stone-900 dark:text-stone-100">2. What kind of graphics card (GPU) do you have?</h3>
+                        <h3 class="text-xl font-semibold mb-3">2. What kind of graphics card (GPU) do you have?</h3>
                         <div class="flex flex-col sm:flex-row gap-4">
-                            <button id="gpu-nvidia" onclick="updateRecommendation('gpu', 'nvidia')" class="flex-1 p-4 border-2 border-stone-200 dark:border-stone-600 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
-                                <strong class="text-lg dark:text-stone-100">NVIDIA</strong>
-                                <p class="text-sm text-stone-700 dark:text-stone-400">(e.g., GeForce GTX / RTX)</p>
+                            <button id="gpu-nvidia" onclick="updateRecommendation('gpu', 'nvidia')" class="flex-1 p-4 border-2 border-stone-200 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
+                                <strong class="text-lg">NVIDIA</strong>
+                                <p class="text-sm">(e.g., GeForce GTX / RTX)</p>
                             </button>
-                            <button id="gpu-other" onclick="updateRecommendation('gpu', 'other')" class="flex-1 p-4 border-2 border-stone-200 dark:border-stone-600 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
-                                <strong class="text-lg dark:text-stone-100">AMD / Intel / Other</strong>
-                                <p class="text-sm text-stone-700 dark:text-stone-400">(e.g., Radeon / Integrated)</p>
+                            <button id="gpu-other" onclick="updateRecommendation('gpu', 'other')" class="flex-1 p-4 border-2 border-stone-200 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
+                                <strong class="text-lg">AMD / Intel / Other</strong>
+                                <p class="text-sm">(e.g., Radeon / Integrated)</p>
                             </button>
                         </div>
                     </div>
                 </div>
-                <div id="recommendation-result" class="bg-stone-50 dark:bg-stone-700 p-6 rounded-xl border border-stone-200 dark:border-stone-600 text-center flex flex-col items-center justify-center min-h-[280px]">
-                    <p class="text-stone-700 dark:text-stone-400">Your recommendation will appear here.</p>
+                <!-- Result -->
+                <div id="recommendation-result" class="bg-stone-50 p-6 rounded-xl border border-stone-200 text-center flex flex-col items-center justify-center min-h-[280px]">
+                    <p>Your recommendation will appear here.</p>
                 </div>
             </div>
         </section>
 
+        <!-- Modpack Comparison Section -->
         <section id="compare" class="mb-16 md:mb-24 section-fade-in">
             <div class="text-center mb-8">
-                <h2 class="text-3xl md:text-4xl font-bold text-stone-900 dark:text-stone-100">Modpack Comparison</h2>
-                <p class="text-stone-800 dark:text-stone-400 mt-2">Visually compare the core philosophies of the top optimization modpacks.</p>
+                <h2 class="text-3xl md:text-4xl font-bold">Modpack Comparison</h2>
+                <p class="mt-2">Visually compare the core philosophies of the top optimization modpacks.</p>
             </div>
             <div class="grid lg:grid-cols-5 gap-8">
-                <div class="lg:col-span-2 bg-white dark:bg-stone-700 p-6 rounded-2xl shadow-lg">
-                    <h3 class="text-2xl font-bold mb-4 text-stone-900 dark:text-stone-100">At a Glance</h3>
-                    <p class="text-stone-800 dark:text-stone-400 mb-6">This chart shows how each pack balances key aspects. A higher value means a stronger focus.</p>
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-4">At a Glance</h3>
+                    <p class="mb-6">This chart shows how each pack balances key aspects. A higher value means a stronger focus.</p>
                     <div id="modpack-details">
-                        </div>
+                        <!-- Details populated by JS -->
+                    </div>
                 </div>
-                <div class="lg:col-span-3 bg-white dark:bg-stone-700 p-6 rounded-2xl shadow-lg">
+                <div class="lg:col-span-3 bg-white p-6 rounded-2xl shadow-lg">
                     <div class="chart-container">
                         <canvas id="modpackRadarChart"></canvas>
                     </div>
@@ -143,58 +193,63 @@
             </div>
         </section>
 
+        <!-- Key Mods Section -->
         <section id="mods" class="mb-16 md:mb-24 section-fade-in">
             <div class="text-center mb-8">
-                <h2 class="text-3xl md:text-4xl font-bold text-stone-900 dark:text-stone-100">The Building Blocks of Performance</h2>
-                <p class="text-stone-800 dark:text-stone-400 mt-2">These are the essential mods that power every great optimization pack.</p>
+                <h2 class="text-3xl md:text-4xl font-bold">The Building Blocks of Performance</h2>
+                <p class="mt-2">These are the essential mods that power every great optimization pack.</p>
             </div>
             <div id="mods-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                </div>
+                <!-- Mod cards populated by JS -->
+            </div>
         </section>
 
+        <!-- Installation & Tweaks Section -->
         <section id="install" class="mb-16 md:mb-24 section-fade-in">
              <div class="text-center mb-8">
-                <h2 class="text-3xl md:text-4xl font-bold text-stone-900 dark:text-stone-100">Get Set Up for Success</h2>
-                <p class="text-stone-800 dark:text-stone-400 mt-2">Follow these steps to install your chosen modpack and apply final tweaks.</p>
+                <h2 class="text-3xl md:text-4xl font-bold">Get Set Up for Success</h2>
+                <p class="mt-2">Follow these steps to install your chosen modpack and apply final tweaks.</p>
             </div>
             <div class="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white dark:bg-stone-700 p-8 rounded-2xl shadow-lg">
-                    <h3 class="text-2xl font-bold mb-6 text-stone-900 dark:text-stone-100">Easy Installation Guide</h3>
-                    <ol class="space-y-6 text-stone-800 dark:text-stone-400">
+                <!-- Installation Steps -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-6">Easy Installation Guide</h3>
+                    <ol class="space-y-6">
                         <li class="flex items-start">
                             <div class="flex-shrink-0 bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg mr-4">1</div>
                             <div>
-                                <h4 class="font-bold text-lg dark:text-stone-100">Download a Launcher</h4>
+                                <h4 class="font-bold text-lg">Download a Launcher</h4>
                                 <p>Use a modern launcher like <a href="https://modrinth.com/app" target="_blank" class="text-green-600 dark:text-green-300 font-semibold hover:underline">Modrinth App</a> or <a href="https://prismlauncher.org/" target="_blank" class="text-green-600 dark:text-green-300 font-semibold hover:underline">Prism Launcher</a>.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
                             <div class="flex-shrink-0 bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg mr-4">2</div>
                             <div>
-                                <h4 class="font-bold text-lg dark:text-stone-100">Install Your Modpack</h4>
+                                <h4 class="font-bold text-lg">Install Your Modpack</h4>
                                 <p>Use the launcher's search function to find and install your chosen modpack (e.g., "Fabulously Optimized") with one click.</p>
                             </div>
                         </li>
                         <li class="flex items-start">
                             <div class="flex-shrink-0 bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg mr-4">3</div>
                             <div>
-                                <h4 class="font-bold text-lg dark:text-stone-100">Allocate RAM</h4>
+                                <h4 class="font-bold text-lg">Allocate RAM</h4>
                                 <p>In the launcher's settings, set the allocated RAM. <strong>4GB (4096MB)</strong> is a great starting point for most PCs.</p>
                             </div>
                         </li>
                     </ol>
                 </div>
-                <div class="bg-white dark:bg-stone-700 p-8 rounded-2xl shadow-lg">
-                    <h3 class="text-2xl font-bold mb-2 text-stone-900 dark:text-stone-100">RAM Allocation Guide</h3>
-                     <p class="text-stone-800 dark:text-stone-400 mb-6">Allocate enough RAM, but not too much. Over-allocating can hurt performance.</p>
+                <!-- RAM Chart -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-2">RAM Allocation Guide</h3>
+                     <p class="mb-6">Allocate enough RAM, but not too much. Over-allocating can hurt performance.</p>
                     <div class="chart-container h-64 sm:h-80">
                         <canvas id="ramChart"></canvas>
                     </div>
                 </div>
             </div>
-             <div class="mt-8 bg-white dark:bg-stone-700 p-8 rounded-2xl shadow-lg">
-                    <h3 class="text-2xl font-bold mb-6 dark:text-stone-100">Final Performance Checklist</h3>
-                    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-stone-800 dark:text-stone-400">
+             <div class="mt-8 bg-white p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-6">Final Performance Checklist</h3>
+                    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         <li class="flex items-center space-x-3"><span class="text-green-500 text-2xl">✓</span><p>Lower in-game <strong>Render Distance</strong> to 4-8 chunks.</p></li>
                         <li class="flex items-center space-x-3"><span class="text-green-500 text-2xl">✓</span><p>Set Graphics to <strong>"Fast"</strong> in Video Settings.</p></li>
                         <li class="flex items-center space-x-3"><span class="text-green-500 text-2xl">✓</span><p><strong>Update your graphics drivers</strong> from the manufacturer's website.</p></li>
@@ -205,15 +260,32 @@
                 </div>
         </section>
 
+        <!-- ✨ AI-Powered Tweaks Section -->
+        <section id="ai-tweaks" class="mb-16 md:mb-24 p-6 sm:p-8 bg-white rounded-2xl shadow-lg section-fade-in">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl md:text-4xl font-bold">✨ AI-Powered Tweaks</h2>
+                <p class="mt-2 max-w-2xl mx-auto">Go beyond the basics. Get personalized, advanced optimization tips generated by AI based on your recommender choices.</p>
+            </div>
+            <div class="text-center">
+                <button id="generate-ai-tweaks-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors disabled:bg-stone-400 disabled:cursor-not-allowed">
+                    Generate AI Tweaks
+                </button>
+            </div>
+            <div id="ai-tweaks-result" class="mt-8 p-6 bg-stone-50 rounded-xl border border-stone-200 min-h-[150px]">
+                <p>Your personalized tweaks will appear here after you make selections above and click the button.</p>
+            </div>
+        </section>
+
     </main>
 
     <footer class="bg-stone-800 text-stone-300">
         <div class="container mx-auto px-6 py-8 text-center">
             <p>Created to help the Minecraft community achieve the best performance possible.</p>
-            <p class="text-sm text-stone-400 mt-2">This is an independent project based on publicly available data and community knowledge.</p>
+            <p class="text-sm text-stone-400 mt-2">This is an independent project based on publicly available data and community knowledge. AI-generated content may be inaccurate.</p>
         </div>
     </footer>
 
+    <!-- Theme toggle script -->
     <script>
       (function(){
         const btn = document.getElementById('theme-toggle');
@@ -230,6 +302,8 @@
             lightIcon.classList.add('hidden');
             darkIcon.classList.remove('hidden');
           }
+          // Dispatch a custom event to notify charts of the theme change
+          window.dispatchEvent(new CustomEvent('themeChanged'));
         }
 
         // Initial setup
@@ -245,6 +319,7 @@
       })();
     </script>
 
+    <!-- Main application logic -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
@@ -261,49 +336,15 @@
             };
             
             const recommendationData = {
-                'fabulously-optimized': {
-                    name: 'Fabulously Optimized',
-                    icon: '🎨',
-                    tagline: 'Best for Balanced Performance',
-                    description: 'This is the best all-around choice. It provides a huge FPS boost while also supporting shaders and adding quality-of-life features for a polished, enhanced vanilla experience.',
-                    color: 'bg-blue-100',
-                    textColor: 'text-blue-800'
-                },
-                'simply-optimized': {
-                    name: 'Simply Optimized',
-                    icon: '🚀',
-                    tagline: 'Best for Maximum FPS',
-                    description: 'If you need every single frame you can get, this is the pack for you. It\'s minimalist and aggressively tuned for raw speed, especially effective on very low-end systems.',
-                    color: 'bg-amber-100',
-                    textColor: 'text-amber-800'
-                },
-                'adrenaline': {
-                    name: 'Adrenaline',
-                    icon: '⚡',
-                    tagline: 'NVIDIA-Specific Power',
-                    description: 'A specialized choice for NVIDIA users. It leverages the Nvidium mod for a significant performance edge, but it often isn\'t compatible with shaders. Pick this if you have an NVIDIA card and don\'t care about shaders.',
-                    color: 'bg-lime-100',
-                    textColor: 'text-lime-800'
-                }
+                'fabulously-optimized': { name: 'Fabulously Optimized', icon: '🎨', tagline: 'Best for Balanced Performance', description: 'This is the best all-around choice. It provides a huge FPS boost while also supporting shaders and adding quality-of-life features for a polished, enhanced vanilla experience.', color: 'bg-blue-100', textColor: 'text-blue-800' },
+                'simply-optimized': { name: 'Simply Optimized', icon: '🚀', tagline: 'Best for Maximum FPS', description: 'If you need every single frame you can get, this is the pack for you. It\'s minimalist and aggressively tuned for raw speed, especially effective on very low-end systems.', color: 'bg-amber-100', textColor: 'text-amber-800' }
             };
             
             const modpackData = {
-                'Fabulously Optimized': {
-                    details: '<strong>Best for:</strong> A balanced experience.<br>The perfect middle-ground, offering huge FPS gains, full shader support, and quality-of-life features. It feels like a polished, faster version of vanilla Minecraft.',
-                    scores: [8, 9, 9, 8]
-                },
-                'Simply Optimized': {
-                    details: '<strong>Best for:</strong> Pure FPS.<br>The speed king. This pack strips out non-essentials to deliver the absolute maximum framerate. Great for very old PCs or competitive players.',
-                    scores: [10, 4, 3, 7]
-                },
-                'Remarkably Optimized': {
-                    details: '<strong>Best for:</strong> An OptiFine alternative.<br>A great choice that focuses on providing key features like shaders and zoom without extra fluff. A strong competitor to Fabulously Optimized.',
-                    scores: [8, 8, 7, 7]
-                },
-                'Adrenaline': {
-                    details: '<strong>Best for:</strong> NVIDIA GPU owners.<br>Leverages the powerful Nvidium mod for a specialized performance boost on NVIDIA cards. Note: usually not compatible with shaders.',
-                    scores: [9, 3, 2, 6]
-                }
+                'Fabulously Optimized': { details: '<strong>Best for:</strong> A balanced experience.<br>The perfect middle-ground, offering huge FPS gains, full shader support, and quality-of-life features. It feels like a polished, faster version of vanilla Minecraft.', scores: [8, 9, 9, 8] },
+                'Simply Optimized': { details: '<strong>Best for:</strong> Pure FPS.<br>The speed king. This pack strips out non-essentials to deliver the absolute maximum framerate. Great for very old PCs or competitive players.', scores: [10, 4, 3, 7] },
+                'Remarkably Optimized': { details: '<strong>Best for:</strong> An OptiFine alternative.<br>A great choice that focuses on providing key features like shaders and zoom without extra fluff. A strong competitor to Fabulously Optimized.', scores: [8, 8, 7, 7] },
+                'Adrenaline': { details: '<strong>Best for:</strong> NVIDIA GPU owners.<br>Leverages the powerful Nvidium mod for a specialized performance boost on NVIDIA cards. Note: usually not compatible with shaders.', scores: [9, 3, 2, 6] }
             };
 
             const mods = [
@@ -318,6 +359,17 @@
             ];
 
             const resultDiv = document.getElementById('recommendation-result');
+            const aiTweaksBtn = document.getElementById('generate-ai-tweaks-btn');
+            const aiTweaksResultDiv = document.getElementById('ai-tweaks-result');
+
+            function checkAiButtonState() {
+                if (state.priority && state.gpu) {
+                    aiTweaksBtn.disabled = false;
+                } else {
+                    aiTweaksBtn.disabled = true;
+                }
+            }
+            checkAiButtonState(); // Initial check
 
             window.updateRecommendation = (type, value) => {
                 state[type] = value;
@@ -332,43 +384,84 @@
                     const recommendedId = recommendations[key];
                     const data = recommendationData[recommendedId];
 
-                    resultDiv.innerHTML = `
-                        <div class="text-3xl mb-3">${data.icon}</div>
-                        <h4 class="text-xl font-bold ${data.textColor}">${data.tagline}</h4>
-                        <h3 class="text-2xl font-bold my-2 text-stone-900 dark:text-stone-100">${data.name}</h3>
-                        <p class="text-stone-700 dark:text-stone-400">${data.description}</p>
-                    `;
+                    resultDiv.innerHTML = `<div class="text-3xl mb-3">${data.icon}</div><h4 class="text-xl font-bold ${data.textColor}">${data.tagline}</h4><h3 class="text-2xl font-bold my-2">${data.name}</h3><p>${data.description}</p>`;
                 }
+                checkAiButtonState();
             };
             
-            // Populate modpack details
+            // --- Gemini API Integration ---
+            async function generateAiTweaks() {
+                if (!state.priority || !state.gpu) {
+                    aiTweaksResultDiv.innerHTML = `<p>Please select your priority and GPU type above first.</p>`;
+                    return;
+                }
+
+                aiTweaksBtn.disabled = true;
+                aiTweaksBtn.textContent = 'Generating...';
+                aiTweaksResultDiv.innerHTML = '<p>Contacting the AI expert... please wait.</p>';
+
+                const priorityText = state.priority === 'fps' ? 'maximum possible FPS' : 'a balance of performance and visuals';
+                const gpuText = state.gpu === 'nvidia' ? 'NVIDIA' : 'AMD, Intel, or other';
+
+                const prompt = `You are an expert in Minecraft Java Edition performance optimization. A user wants to optimize their game. Their priority is ${priorityText} and they have a ${gpuText} GPU. Provide three advanced, expert-level optimization tips for them. Focus on non-obvious tweaks, like specific mod configurations, JVM arguments, or config file edits. Do not suggest basic tips like "lower render distance" or "update drivers". Present the tips as a bulleted list. For each tip, give a clear heading and a short explanation of what it does and how to apply it. Format your response in simple Markdown.`;
+                
+                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // API key will be injected by the environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
+                        let text = result.candidates[0].content.parts[0].text;
+                        // Basic Markdown to HTML conversion
+                        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+                        text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');       // Italics
+                        text = text.replace(/^- (.*$)/gm, '<li>$1</li>');       // List items
+                        text = text.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>'); // Wrap in ul
+                        aiTweaksResultDiv.innerHTML = text;
+                    } else {
+                        throw new Error("Invalid response structure from API.");
+                    }
+
+                } catch (error) {
+                    console.error("Gemini API Error:", error);
+                    aiTweaksResultDiv.innerHTML = `<p class="text-red-500">Sorry, the AI expert seems to be busy. Please try again later. Error: ${error.message}</p>`;
+                } finally {
+                    aiTweaksBtn.disabled = false;
+                    aiTweaksBtn.textContent = 'Generate AI Tweaks';
+                }
+            }
+
+            aiTweaksBtn.addEventListener('click', generateAiTweaks);
+
+
+            // --- UI Population and Chart Rendering ---
             const detailsDiv = document.getElementById('modpack-details');
             Object.keys(modpackData).forEach(name => {
-                detailsDiv.innerHTML += `
-                    <div class="mb-4">
-                        <h4 class="font-bold text-lg text-stone-900 dark:text-stone-100">${name}</h4>
-                        <div class="text-stone-700 dark:text-stone-400 text-sm">${modpackData[name].details}</div>
-                    </div>
-                `;
+                detailsDiv.innerHTML += `<div class="mb-4"><h4 class="font-bold text-lg">${name}</h4><div class="text-sm">${modpackData[name].details}</div></div>`;
             });
 
-            // Mods Grid
             const modsGrid = document.getElementById('mods-grid');
             mods.forEach(mod => {
                 const div = document.createElement('div');
-                div.className = 'p-4 bg-white dark:bg-stone-700 rounded-lg shadow cursor-pointer transition-transform hover:scale-105';
-                div.innerHTML = `
-                    <h4 class="font-bold text-lg text-stone-900 dark:text-stone-100">${mod.name}</h4>
-                    <p class="text-sm text-stone-700 dark:text-stone-400 mt-1 hidden">${mod.desc}</p>
-                `;
-                div.onclick = () => {
-                    const desc = div.querySelector('p');
-                    desc.classList.toggle('hidden');
-                };
+                div.className = 'p-4 bg-white rounded-lg shadow cursor-pointer transition-transform hover:scale-105';
+                div.innerHTML = `<h4 class="font-bold text-lg">${mod.name}</h4><p class="text-sm mt-1 hidden">${mod.desc}</p>`;
+                div.onclick = () => { div.querySelector('p').classList.toggle('hidden'); };
                 modsGrid.appendChild(div);
             });
 
-            // --- DYNAMIC CHART RENDERING ---
             let radarChart, ramChart;
             const radarCtx = document.getElementById('modpackRadarChart').getContext('2d');
             const ramCtx = document.getElementById('ramChart').getContext('2d');
@@ -376,16 +469,13 @@
             function renderCharts() {
                 const isDark = document.documentElement.classList.contains('dark');
                 const gridColor = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)';
-                const pointLabelColor = isDark ? '#e5e7eb' : '#374151';
-                const tickColor = isDark ? '#9ca3af' : '#78716c';
-                const legendColor = isDark ? '#e5e7eb' : '#44403c';
-                const backdropColor = isDark ? '#4b5563' : '#ffffff';
+                const pointLabelColor = isDark ? '#e5e7eb' : '#111827';
+                const tickColor = isDark ? '#9ca3af' : '#111827';
+                const legendColor = isDark ? '#e5e7eb' : '#111827';
 
-                // Destroy existing charts to prevent duplicates
                 if (radarChart) radarChart.destroy();
                 if (ramChart) ramChart.destroy();
 
-                // Radar Chart
                 radarChart = new Chart(radarCtx, {
                     type: 'radar',
                     data: {
@@ -393,76 +483,28 @@
                         datasets: Object.keys(modpackData).map((name, index) => {
                             const bgColors = ['rgba(34, 197, 94, 0.4)', 'rgba(251, 191, 36, 0.4)', 'rgba(59, 130, 246, 0.4)', 'rgba(132, 204, 22, 0.4)'];
                             const borderColors = ['rgba(22, 163, 74, 1)', 'rgba(217, 119, 6, 1)', 'rgba(37, 99, 235, 1)', 'rgba(101, 163, 13, 1)'];
-                            return {
-                                label: name, data: modpackData[name].scores,
-                                backgroundColor: bgColors[index % bgColors.length],
-                                borderColor: borderColors[index % borderColors.length],
-                                borderWidth: 2, pointBackgroundColor: borderColors[index % borderColors.length],
-                            };
+                            return { label: name, data: modpackData[name].scores, backgroundColor: bgColors[index % bgColors.length], borderColor: borderColors[index % borderColors.length], borderWidth: 2, pointBackgroundColor: borderColors[index % borderColors.length] };
                         })
                     },
-                    options: {
-                        maintainAspectRatio: false,
-                        scales: { r: {
-                            angleLines: { color: gridColor }, grid: { color: gridColor },
-                            pointLabels: { font: { size: 12, weight: 'bold' }, color: pointLabelColor },
-                            ticks: { backdropColor: isDark ? '#1f2937' : '#f5f5f4', color: tickColor, stepSize: 2 },
-                            suggestedMin: 0, suggestedMax: 10
-                        }},
-                        plugins: { legend: { position: 'top', labels: { font: { size: 14 }, color: legendColor }}}
-                    }
+                    options: { maintainAspectRatio: false, scales: { r: { angleLines: { color: gridColor }, grid: { color: gridColor }, pointLabels: { font: { size: 12, weight: 'bold' }, color: pointLabelColor }, ticks: { backdropColor: isDark ? '#1f2937' : '#f5f5f4', color: tickColor, stepSize: 2 }, suggestedMin: 0, suggestedMax: 10 }}, plugins: { legend: { position: 'top', labels: { font: { size: 14 }, color: legendColor }}}}
                 });
 
-                // RAM Bar Chart
                 ramChart = new Chart(ramCtx, {
                     type: 'bar',
                     data: {
                         labels: ['Basic Vanilla', 'Opti-Modpacks', 'Shaders / Heavy Use'],
-                        datasets: [{
-                            label: 'Recommended RAM (GB)', data: [2, 4, 6],
-                            backgroundColor: ['rgba(251, 191, 36, 0.6)', 'rgba(34, 197, 94, 0.6)', 'rgba(59, 130, 246, 0.6)'],
-                            borderColor: ['rgba(217, 119, 6, 1)', 'rgba(22, 163, 74, 1)', 'rgba(37, 99, 235, 1)'],
-                            borderWidth: 2
-                        }]
+                        datasets: [{ label: 'Recommended RAM (GB)', data: [2, 4, 6], backgroundColor: ['rgba(251, 191, 36, 0.6)', 'rgba(34, 197, 94, 0.6)', 'rgba(59, 130, 246, 0.6)'], borderColor: ['rgba(217, 119, 6, 1)', 'rgba(22, 163, 74, 1)', 'rgba(37, 99, 235, 1)'], borderWidth: 2 }]
                     },
-                    options: {
-                        maintainAspectRatio: false, indexAxis: 'y',
-                        scales: {
-                            x: {
-                                beginAtZero: true, grid: { display: false },
-                                ticks: { color: tickColor, callback: value => value + ' GB' }
-                            },
-                            y: {
-                                grid: { drawOnChartArea: false },
-                                ticks: { color: tickColor }
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: { callbacks: { label: ctx => ` ${ctx.raw} GB` } }
-                        }
-                    }
+                    options: { maintainAspectRatio: false, indexAxis: 'y', scales: { x: { beginAtZero: true, grid: { display: false }, ticks: { color: tickColor, callback: value => value + ' GB' } }, y: { grid: { drawOnChartArea: false }, ticks: { color: tickColor } }}, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} GB` } } }}
                 });
             }
 
-            // Initial render
             renderCharts();
+            window.addEventListener('themeChanged', renderCharts);
 
-            // Re-render charts on theme change
-            document.getElementById('theme-toggle').addEventListener('click', () => {
-                // Use a short timeout to ensure the 'dark' class is applied before rendering
-                setTimeout(renderCharts, 50);
-            });
-
-            // Fade-in sections on scroll
             const sections = document.querySelectorAll('.section-fade-in');
             const observer = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.animationPlayState = 'running';
-                        observer.unobserve(entry.target);
-                    }
-                });
+                entries.forEach(entry => { if (entry.isIntersecting) { entry.target.style.animationPlayState = 'running'; observer.unobserve(entry.target); }});
             }, { threshold: 0.1 });
             sections.forEach(section => observer.observe(section));
         });
