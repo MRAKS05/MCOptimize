@@ -17,20 +17,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <!-- Chosen Palette: Warm Neutrals with Green Accent -->
-    <!-- Application Structure Plan: The SPA uses a thematic, single-page dashboard structure. It starts with an interactive recommendation quiz to give users an immediate, personalized answer. This is followed by deeper-dive sections: a visual comparison of modpacks (using a radar chart for quick comprehension), a glossary of key mods, and a step-by-step installation guide. This structure prioritizes user action and decision-making over the linear, chapter-based format of the source report. It allows users to get a quick answer first, then explore details as needed, which is a more effective flow for a web application designed to solve a problem. -->
-    <!-- Visualization & Content Choices: 
-        - Report Info: User priorities (FPS vs. Balanced) and GPU type. -> Goal: Guide user choice. -> Viz: Interactive buttons and dynamic text display. -> Interaction: User clicks buttons, a tailored recommendation appears. -> Justification: Provides an immediate, personalized answer, increasing engagement. -> Library: Vanilla JS.
-        - Report Info: Comparison of modpack philosophies (FO, SO, etc.). -> Goal: Compare trade-offs. -> Viz: Radar Chart. -> Interaction: Buttons to select which modpack's data is highlighted on the chart. -> Justification: A radar chart visually communicates multi-faceted concepts (performance, visuals, QoL) far more effectively than a static table. -> Library: Chart.js.
-        - Report Info: RAM allocation guidelines. -> Goal: Inform best practices. -> Viz: Bar Chart. -> Interaction: Static chart for clarity. -> Justification: A simple bar chart clearly illustrates the recommended RAM for different use cases. -> Library: Chart.js.
-        - Report Info: Key mod descriptions. -> Goal: Organize and explain technical concepts. -> Viz: Interactive HTML cards. -> Interaction: Clicking a card reveals its description. -> Justification: A clean, user-initiated way to present dense information without cluttering the UI. -> Library: Vanilla JS.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body { font-family: 'Inter', sans-serif; }
         /* Light mode defaults */
-        body { background-color: #f5f5f4; color: #292524; }
-        .nav-link { transition: color 0.3s, border-bottom-color 0.3s; border-bottom: 2px solid transparent; }
+        body { background-color: #f5f5f4; color: #1f2937; }
+        .nav-link { transition: color 0.3s, border-bottom-color 0.3s; border-bottom: 2px solid transparent; color: #1f2937; }
         .nav-link:hover, .nav-link.active { color: #16a34a; border-bottom-color: #16a34a; }
         .chart-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto; height: 350px; max-height: 400px; }
         @media (min-width: 768px) { .chart-container { height: 400px; } }
@@ -38,6 +29,12 @@
         .recommendation-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
         .section-fade-in { opacity: 0; animation: fadeIn 0.8s ease-out forwards; }
         @keyframes fadeIn { to { opacity: 1; } }
+
+        /* Improve light-mode block contrast */
+        :root:not(.dark) .bg-white { background-color: #ffffff; }
+        :root:not(.dark) .bg-stone-50 { background-color: #e4e4e7; }
+        :root:not(.dark) .border-stone-200 { border-color: #cbd5e1; }
+        :root:not(.dark) .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
 
         /* Dark mode overrides */
         .dark body { background-color: #1f2937; color: #e5e7eb !important; }
@@ -53,11 +50,13 @@
 
     <!-- Header & Navigation -->
     <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="text-2xl font-bold text-green-700">
+        <nav class="container mx-auto px-6 py-4 flex items-center">
+            <!-- Logo as hyperlink -->
+            <a href="https://mcoptimize.pages.dev" class="text-2xl font-bold text-green-700">
                 <span class="text-stone-800 dark:text-stone-200">MC</span>Optimize
-            </div>
-            <div class="hidden md:flex space-x-8">
+            </a>
+            <!-- Centered nav links -->
+            <div class="hidden md:flex flex-1 justify-center space-x-8">
                 <a href="#recommender" class="nav-link font-semibold">Recommender</a>
                 <a href="#compare"      class="nav-link font-semibold">Compare</a>
                 <a href="#mods"         class="nav-link font-semibold">Key Mods</a>
@@ -67,11 +66,11 @@
                 <a href="#recommender" class="md:hidden bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">Get Started</a>
                 <!-- Theme Toggle Button -->
                 <button id="theme-toggle" class="ml-4 p-2 rounded-full focus:outline-none text-stone-800 dark:text-stone-200" aria-label="Toggle Dark Mode">
-                    <!-- Sun icon (shown in dark mode) -->
+                    <!-- Sun icon (dark mode) -->
                     <svg id="theme-toggle-light-icon" class="hidden w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 2a.75.75 0 0 1 .75.75V4a.75.75 0 0 1-1.5 0V2.75A.75.75 0 0 1 10 2zm5.657 2.343a.75.75 0 0 1 1.06 1.06l-1.061 1.061a.75.75 0 1 1-1.06-1.06l1.06-1.061zM18 9.25a.75.75 0 0 1 .75.75H20a.75.75 0 0 1 0 1.5h-1.25A.75.75 0 0 1 18 9.25zm-2.343 5.657a.75.75 0 0 1 1.06 1.06l-1.061 1.061a.75.75 0 0 1-1.06-1.06l1.06-1.061zM10 16a.75.75 0 0 1 .75.75V18a.75.75 0 0 1-1.5 0v-1.25A.75.75 0 0 1 10 16zm-5.657-2.343a.75.75 0 0 1 1.06-1.06l1.061 1.06a.75.75 0 1 1-1.06 1.061l-1.061-1.061zM2 10a.75.75 0 0 1 .75-.75H4a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 10zm2.343-5.657a.75.75 0 1 1 1.06-1.06l1.061 1.06a.75.75 0 1 1-1.06 1.061L4.343 4.343z"/>
                     </svg>
-                    <!-- Moon icon (shown in light mode) -->
+                    <!-- Moon icon (light mode) -->
                     <svg id="theme-toggle-dark-icon" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M17.293 13.293a8 8 0 1 1-10.586-10.586 7 7 0 1 0 10.586 10.586z"/>
                     </svg>
@@ -81,10 +80,11 @@
     </header>
 
     <main class="container mx-auto px-6 py-8 md:py-12">
+
         <!-- Hero Section -->
         <section class="text-center mb-16 md:mb-24">
             <h1 class="text-4xl md:text-6xl font-bold mb-4 text-stone-900 dark:text-stone-100">Run Minecraft Smoothly on Any PC</h1>
-            <p class="max-w-3xl mx-auto text-lg md:text-xl text-stone-600 dark:text-stone-400">
+            <p class="max-w-3xl mx-auto text-lg md:text-xl text-stone-700 dark:text-stone-400">
                 Stop battling low FPS and stuttering. Use this guide to find the perfect optimization modpack and transform your Minecraft experience, even on a low-end computer.
             </p>
         </section>
@@ -92,42 +92,42 @@
         <!-- Recommender Section -->
         <section id="recommender" class="mb-16 md:mb-24 p-8 bg-white rounded-2xl shadow-lg section-fade-in">
             <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-stone-800 dark:text-stone-100">Find Your Perfect Modpack in Seconds</h2>
-                <p class="text-stone-600 dark:text-stone-400 mt-2">Answer two simple questions to get our top recommendation for your system.</p>
+                <h2 class="text-3xl font-bold text-stone-900 dark:text-stone-100">Find Your Perfect Modpack in Seconds</h2>
+                <p class="text-stone-700 dark:text-stone-400 mt-2">Answer two simple questions to get our top recommendation for your system.</p>
             </div>
             <div class="grid md:grid-cols-2 gap-8 items-center">
                 <!-- Questions -->
                 <div>
                     <div class="mb-6">
-                        <h3 class="text-xl font-semibold mb-3 text-stone-800 dark:text-stone-100">1. What is your main priority?</h3>
+                        <h3 class="text-xl font-semibold mb-3 text-stone-900 dark:text-stone-100">1. What is your main priority?</h3>
                         <div class="flex flex-col sm:flex-row gap-4">
                             <button id="priority-balanced" onclick="updateRecommendation('priority', 'balanced')" class="flex-1 text-left p-4 border-2 border-stone-200 dark:border-stone-600 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
                                 <strong class="text-lg dark:text-stone-100">🎨 Balanced Experience</strong>
-                                <p class="text-sm text-stone-500 dark:text-stone-400">I want great performance but also good graphics and features like shaders.</p>
+                                <p class="text-sm text-stone-600 dark:text-stone-400">I want great performance but also good graphics and features like shaders.</p>
                             </button>
                             <button id="priority-fps" onclick="updateRecommendation('priority', 'fps')" class="flex-1 text-left p-4 border-2 border-stone-200 dark:border-stone-600 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
                                 <strong class="text-lg dark:text-stone-100">🚀 Maximum FPS</strong>
-                                <p class="text-sm text-stone-500 dark:text-stone-400">I only care about the highest possible framerate, even if it looks basic.</p>
+                                <p class="text-sm text-stone-600 dark:text-stone-400">I only care about the highest possible framerate, even if it looks basic.</p>
                             </button>
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold mb-3 text-stone-800 dark:text-stone-100">2. What kind of graphics card (GPU) do you have?</h3>
+                        <h3 class="text-xl font-semibold mb-3 text-stone-900 dark:text-stone-100">2. What kind of graphics card (GPU) do you have?</h3>
                         <div class="flex flex-col sm:flex-row gap-4">
-                            <button id="gpu-nvidia" onclick="updateRecommendation('gpu', 'nvidia')" class="flex-1 p-4 border-2 border-stone-200 dark:border-stone-600 rounded-lg hover;border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
+                            <button id="gpu-nvidia" onclick="updateRecommendation('gpu', 'nvidia')" class="flex-1 p-4 border-2 border-stone-200 dark:border-stone-600 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
                                 <strong class="text-lg dark:text-stone-100">NVIDIA</strong>
-                                <p class="text-sm text-stone-500 dark:text-stone-400">(e.g., GeForce GTX / RTX)</p>
+                                <p class="text-sm text-stone-600 dark:text-stone-400">(e.g., GeForce GTX / RTX)</p>
                             </button>
-                            <button id="gpu-other" onclick="updateRecommendation('gpu', 'other')" class="flex-1 p-4 border-2 border-stone-200 dark:border-stone-600 rounded-lg hover;border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
+                            <button id="gpu-other" onclick="updateRecommendation('gpu', 'other')" class="flex-1 p-4 border-2 border-stone-200 dark:border-stone-600 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900 transition-all">
                                 <strong class="text-lg dark:text-stone-100">AMD / Intel / Other</strong>
-                                <p class="text-sm text-stone-500 dark:text-stone-400">(e.g., Radeon / Integrated)</p>
+                                <p class="text-sm text-stone-600 dark:text-stone-400">(e.g., Radeon / Integrated)</p>
                             </button>
                         </div>
                     </div>
                 </div>
                 <!-- Result -->
                 <div id="recommendation-result" class="bg-stone-50 dark:bg-stone-700 p-6 rounded-xl border border-stone-200 dark:border-stone-600 text-center flex flex-col items-center justify-center min-h-[280px]">
-                    <p class="text-stone-500 dark:text-stone-400">Your recommendation will appear here.</p>
+                    <p class="text-stone-600 dark:text-stone-400">Your recommendation will appear here.</p>
                 </div>
             </div>
         </section>
@@ -135,15 +135,15 @@
         <!-- Modpack Comparison Section -->
         <section id="compare" class="mb-16 md:mb-24 section-fade-in">
             <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-stone-800 dark:text-stone-100">Modpack Comparison</h2>
-                <p class="text-stone-600 dark:text-stone-400 mt-2">Visually compare the core philosophies of the top optimization modpacks. Click a name to learn more.</p>
+                <h2 class="text-3xl font-bold text-stone-900 dark:text-stone-100">Modpack Comparison</h2>
+                <p class="text-stone-700 dark:text-stone-400 mt-2">Visually compare the core philosophies of the top optimization modpacks. Click a name to learn more.</p>
             </div>
             <div class="grid lg:grid-cols-5 gap-8">
                 <div class="lg:col-span-2 bg-white dark:bg-stone-700 p-6 rounded-2xl shadow-lg">
-                    <h3 class="text-2xl font-bold mb-4 text-stone-800 dark:text-stone-100">At a Glance</h3>
-                    <p class="text-stone-600 dark:text-stone-400 mb-6">This chart shows how each pack balances key aspects. A higher value means a stronger focus on that area.</p>
+                    <h3 class="text-2xl font-bold mb-4 text-stone-900 dark:text-stone-100">At a Glance</h3>
+                    <p class="text-stone-700 dark:text-stone-400 mb-6">This chart shows how each pack balances key aspects. A higher value means a stronger focus on that area.</p>
                     <div id="modpack-details">
-                        <!-- Details will be populated by JS -->
+                        <!-- Details populated by JS -->
                     </div>
                 </div>
                 <div class="lg:col-span-3 bg-white dark:bg-stone-700 p-6 rounded-2xl shadow-lg">
@@ -157,25 +157,25 @@
         <!-- Key Mods Section -->
         <section id="mods" class="mb-16 md:mb-24 section-fade-in">
             <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-stone-800 dark:text-stone-100">The Building Blocks of Performance</h2>
-                <p class="text-stone-600 dark:text-stone-400 mt-2">These are the essential mods that power every great optimization pack. Click to learn what they do.</p>
+                <h2 class="text-3xl font-bold text-stone-900 dark:text-stone-100">The Building Blocks of Performance</h2>
+                <p class="text-stone-700 dark:text-stone-400 mt-2">These are the essential mods that power every great optimization pack. Click to learn what they do.</p>
             </div>
             <div id="mods-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <!-- Mod cards will be populated by JS -->
+                <!-- Mod cards populated by JS -->
             </div>
         </section>
 
         <!-- Installation & Tweaks Section -->
         <section id="install" class="mb-16 md:mb-24 section-fade-in">
              <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-stone-800 dark:text-stone-100">Get Set Up for Success</h2>
-                <p class="text-stone-600 dark:text-stone-400 mt-2">Follow these steps to install your chosen modpack and apply final tweaks for the best results.</p>
+                <h2 class="text-3xl font-bold text-stone-900 dark:text-stone-100">Get Set Up for Success</h2>
+                <p class="text-stone-700 dark:text-stone-400 mt-2">Follow these steps to install your chosen modpack and apply final tweaks for the best results.</p>
             </div>
             <div class="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Installation Steps -->
                 <div class="bg-white dark:bg-stone-700 p-8 rounded-2xl shadow-lg">
-                    <h3 class="text-2xl font-bold mb-6 text-stone-800 dark:text-stone-100">Easy Installation Guide</h3>
-                    <ol class="space-y-6 text-stone-600 dark:text-stone-400">
+                    <h3 class="text-2xl font-bold mb-6 text-stone-900 dark:text-stone-100">Easy Installation Guide</h3>
+                    <ol class="space-y-6 text-stone-700 dark:text-stone-400">
                         <li class="flex items-start">
                             <div class="flex-shrink-0 bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg mr-4">1</div>
                             <div>
@@ -201,8 +201,8 @@
                 </div>
                 <!-- RAM Chart -->
                 <div class="bg-white dark:bg-stone-700 p-8 rounded-2xl shadow-lg">
-                    <h3 class="text-2xl font-bold mb-2 text-stone-800 dark:text-stone-100">RAM Allocation Guide</h3>
-                     <p class="text-stone-600 dark:text-stone-400 mb-6">Allocate enough RAM, but not too much. Over-allocating can hurt performance.</p>
+                    <h3 class="text-2xl font-bold mb-2 text-stone-900 dark:text-stone-100">RAM Allocation Guide</h3>
+                     <p class="text-stone-700 dark:text-stone-400 mb-6">Allocate enough RAM, but not too much. Over-allocating can hurt performance.</p>
                     <div class="chart-container h-64 sm:h-80">
                         <canvas id="ramChart"></canvas>
                     </div>
@@ -210,7 +210,7 @@
             </div>
              <div class="mt-8 bg-white dark:bg-stone-700 p-8 rounded-2xl shadow-lg">
                     <h3 class="text-2xl font-bold mb-6 dark:text-stone-100">Final Performance Checklist</h3>
-                    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-stone-600 dark:text-stone-400">
+                    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-stone-700 dark:text-stone-400">
                         <li class="flex items-center space-x-3"><span class="text-green-500 text-2xl">✓</span><p>Lower in-game <strong>Render Distance</strong> to 4-8 chunks.</p></li>
                         <li class="flex items-center space-x-3"><span class="text-green-500 text-2xl">✓</span><p>Set Graphics to <strong>"Fast"</strong> in Video Settings.</p></li>
                         <li class="flex items-center space-x-3"><span class="text-green-500 text-2xl">✓</span><p><strong>Update your graphics drivers</strong> from the manufacturer's website.</p></li>
@@ -220,6 +220,7 @@
                     </ul>
                 </div>
         </section>
+
     </main>
 
     <footer class="bg-stone-800 text-stone-300">
@@ -253,11 +254,7 @@
           lightIcon.classList.toggle('hidden');
           darkIcon.classList.toggle('hidden');
           document.documentElement.classList.toggle('dark');
-          if (document.documentElement.classList.contains('dark')) {
-            localStorage.theme = 'dark';
-          } else {
-            localStorage.theme = 'light';
-          }
+          localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
         });
       })();
     </script>
@@ -424,7 +421,7 @@
             Object.keys(modpackData).forEach(name => {
                 detailsDiv.innerHTML += `
                     <div class="mb-4">
-                        <h4 class="font-bold text-lg text-stone-800 dark:text-stone-100">${name}</h4>
+                        <h4 class="font-bold text-lg text-stone-900 dark:text-stone-100">${name}</h4>
                         <div class="text-stone-600 dark:text-stone-400 text-sm">${modpackData[name].details}</div>
                     </div>
                 `;
@@ -436,8 +433,8 @@
                 const div = document.createElement('div');
                 div.className = 'p-4 bg-white dark:bg-stone-700 rounded-lg shadow cursor-pointer transition-transform hover:scale-105';
                 div.innerHTML = `
-                    <h4 class="font-bold text-lg text-stone-800 dark:text-stone-100">${mod.name}</h4>
-                    <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 hidden">${mod.desc}</p>
+                    <h4 class="font-bold text-lg text-stone-900 dark:text-stone-100">${mod.name}</h4>
+                    <p class="text-sm text-stone-600 dark:text-stone-400 mt-1 hidden">${mod.desc}</p>
                 `;
                 div.onclick = () => {
                     const desc = div.querySelector('p');
@@ -477,21 +474,13 @@
                         x: {
                             beginAtZero: true,
                             grid: { display: false },
-                            ticks: {
-                                callback: value => value + ' GB'
-                            }
+                            ticks: { callback: value => value + ' GB' }
                         },
-                        y: {
-                            grid: { drawOnChartArea: false }
-                        }
+                        y: { grid: { drawOnChartArea: false } }
                     },
                     plugins: {
                         legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: context => ` ${context.raw} GB`
-                            }
-                        }
+                        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} GB` } }
                     }
                 }
             });
